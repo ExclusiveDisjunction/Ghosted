@@ -82,6 +82,7 @@ public struct AllApplications : View {
                     warning: warning
                 )
             }
+            .withWarning(warning)
             .withElementDeleting(manifest: delete)
             .withElementIE(manifest: inspect) { app in
                 app.position = "";
@@ -108,6 +109,12 @@ public struct AllApplications : View {
                         showingFilter = true
                     } label: {
                         Label("Filtering", systemImage: "line.3.horizontal.decrease")
+                    }
+                }
+                
+                ToolbarItem(placement: .secondaryAction) {
+                    Toggle(isOn: $showStatusColors) {
+                        Label("Show Colors on Job Status", systemImage: "eyedropper.full")
                     }
                 }
                 

@@ -44,11 +44,14 @@ public class DataStack : ObservableObject, @unchecked Sendable {
     public static let containerName = "Ghosted";
     
     private var _persistentContainer: NSPersistentCloudKitContainer? = nil;
-    private var _debugContainer: NSPersistentContainer? = nil;
+    private var _debugContainer: NSPersistentCloudKitContainer? = nil;
     
     public var currentContainer: NSPersistentContainer {
+        #if DEBUG
         self.debugContainer
-        //self.persistentContainer
+        #else
+        self.persistentContainer
+        #endif
     }
     
     public var persistentContainer: NSPersistentCloudKitContainer {
@@ -79,7 +82,7 @@ public class DataStack : ObservableObject, @unchecked Sendable {
                 return container;
             }
             
-            let container = NSPersistentContainer(name: Self.containerName);
+            let container = NSPersistentCloudKitContainer(name: Self.containerName);
             
             let desc = NSPersistentStoreDescription();
             desc.type = NSInMemoryStoreType;

@@ -16,6 +16,8 @@ struct GhostedApp: App {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.viewContext)
+        }.commands {
+            GeneralCommands()
         }
     }
 }

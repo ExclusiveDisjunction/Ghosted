@@ -116,4 +116,29 @@ public extension JobApplication {
         get { self.internalNotes ?? String() }
         set { self.internalNotes = newValue }
     }
+    
+    private func validateValues() throws(ValidationFailure) {
+        var builder = ValidationFailureBuilder();
+        if position.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            builder.add(prop: "Position", reason: .empty)
+        }
+        if company.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            builder.add(prop: "Company", reason: .empty)
+        }
+        
+        if let failure = builder.build() {
+            throw failure;
+        }
+    }
+    
+    override func validateForInsert() throws {
+        try super.validateForInsert();
+            
+        try validateValues()
+    }
+    override func validateForUpdate() throws {
+        try super.validateForUpdate()
+        
+        try validateValues()
+    }
 }

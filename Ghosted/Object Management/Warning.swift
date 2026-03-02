@@ -10,7 +10,7 @@ import SwiftUI
 /// A simple basis for what warnings should include.
 public protocol WarningBasis  {
     /// The encoded message that the warning presents.
-    var message: LocalizedStringKey { get }
+    var message: String { get }
 }
 
 /// The warning message to be presented.
@@ -23,27 +23,27 @@ public enum SelectionWarningKind: Int, Identifiable, WarningBasis {
     
     public var id: Self { self }
     /// Returns the `LocalizedStringKey` that
-    public var message: LocalizedStringKey {
+    public var message: String {
         switch self {
-            case .noneSelected: "noItems"
-            case .tooMany: "tooManyItems"
+            case .noneSelected: NSLocalizedString("noItems", comment: "")
+            case .tooMany:      NSLocalizedString("tooManyItems", comment: "")
         }
     }
 }
 
 /// A string-based message used to indicate errors for the UI.
 public struct StringWarning: Identifiable, WarningBasis {
-    public init(_ message: LocalizedStringKey, id: UUID = UUID()) {
+    public init(_ message: String, id: UUID = UUID()) {
         self.message = message
         self.id = id
     }
-    public let message: LocalizedStringKey
+    public let message: String
     
-    public var id: UUID ;
+    public var id: UUID;
 }
 
 public struct InternalErrorWarning : WarningBasis {
-    public var message: LocalizedStringKey { "internalError" }
+    public var message: String { NSLocalizedString("internalError", comment: "") }
 }
 
 /// An observable class that provides warning funcntionality. It includes a memeber, `isPresented`, which can be bound. This value will become `true` when the internal `warning` is not `nil`.
@@ -54,7 +54,7 @@ public class WarningManifest<T> where T: WarningBasis {
     }
     
     public var warning: T?;
-    public var message: LocalizedStringKey? { warning?.message }
+    public var message: String? { warning?.message }
     public var isPresented: Bool {
         get { warning != nil }
         set {
@@ -86,7 +86,7 @@ public struct WarningManifestExtension<T> : ViewModifier where T: WarningBasis {
                     from.isPresented = false
                 }
             } message: {
-                Text(from.warning?.message ?? "internalError")
+                Text(verbatim: from.warning?.message ?? NSLocalizedString("internalError", comment: ""))
             }
     }
 }
