@@ -35,3 +35,7 @@ Often times in the modern world, people are faced with an issue. How to keep tra
 - ``DataStack``
 - ``DebugSampleData``
 - ``DebugContainerFiller``
+
+### Miscellaneous Tools
+
+- ``DatesFilterRange``

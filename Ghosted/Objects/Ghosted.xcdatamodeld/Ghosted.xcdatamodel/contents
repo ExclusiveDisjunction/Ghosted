@@ -1,21 +1,54 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25D125" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
-    <entity name="CoverLetter" representedClassName="CoverLetter" parentEntity="Document" syncable="YES" codeGenerationType="class"/>
-    <entity name="Document" representedClassName="Document" isAbstract="YES" syncable="YES" codeGenerationType="class"/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25D2128" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Company" representedClassName="Company" syncable="YES" codeGenerationType="class">
+        <attribute name="internalLocation" optional="YES" attributeType="String"/>
+        <attribute name="internalName" optional="YES" attributeType="String"/>
+        <relationship name="applications" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="JobApplication" inverseName="company" inverseEntity="JobApplication"/>
+        <relationship name="contacts" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CompanyContact" inverseName="company" inverseEntity="CompanyContact"/>
+    </entity>
+    <entity name="CompanyContact" representedClassName="CompanyContact" syncable="YES" codeGenerationType="class">
+        <attribute name="contactIdentifier" optional="YES" attributeType="String"/>
+        <attribute name="internalEmail" optional="YES" attributeType="String"/>
+        <attribute name="internalFirstName" attributeType="String" defaultValueString=""/>
+        <attribute name="internalLastName" attributeType="String" defaultValueString=""/>
+        <attribute name="internalPhoneNumber" optional="YES" attributeType="Composite"/>
+        <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="contacts" inverseEntity="Company"/>
+    </entity>
+    <entity name="CoverLetter" representedClassName="CoverLetter" parentEntity="Document" syncable="YES" codeGenerationType="class">
+        <relationship name="jobApplication" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="JobApplication" inverseName="coverLetter" inverseEntity="JobApplication"/>
+    </entity>
+    <entity name="Document" representedClassName="Document" isAbstract="YES" syncable="YES" codeGenerationType="class">
+        <attribute name="internalRelativePath" attributeType="String" defaultValueString=""/>
+    </entity>
     <entity name="JobApplication" representedClassName="JobApplication" syncable="YES" codeGenerationType="class">
         <attribute name="internalAppliedOn" attributeType="Date" defaultDateTimeInterval="794074440" usesScalarValueType="NO"/>
         <attribute name="internalCompany" attributeType="String" defaultValueString=""/>
         <attribute name="internalKind" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="internalLastContactedOn" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="internalLastStatusUpdated" optional="YES" attributeType="Date" defaultDateTimeInterval="794092800" usesScalarValueType="NO"/>
         <attribute name="internalLocation" optional="YES" attributeType="String" defaultValueString=""/>
         <attribute name="internalLocationKind" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="internalNotes" attributeType="String" defaultValueString=""/>
         <attribute name="internalPosition" attributeType="String" defaultValueString=""/>
         <attribute name="internalState" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="payRange" optional="YES" attributeType="Composite" composite="PayRange"/>
         <attribute name="website" optional="YES" attributeType="URI"/>
-        <relationship name="documents" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Document"/>
+        <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="applications" inverseEntity="Company"/>
+        <relationship name="coverLetter" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="CoverLetter" inverseName="jobApplication" inverseEntity="CoverLetter"/>
+        <relationship name="resume" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Resume" inverseName="jobApplications" inverseEntity="Resume"/>
     </entity>
     <entity name="Resume" representedClassName="Resume" parentEntity="Document" syncable="YES" codeGenerationType="class">
-        <attribute name="isCv" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="isCv" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <relationship name="jobApplications" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="JobApplication" inverseName="resume" inverseEntity="JobApplication"/>
     </entity>
+    <composite name="PayRange">
+        <attribute name="internalMin" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="internalMax" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+    </composite>
+    <composite name="PhoneNumber">
+        <attribute name="countryCode" attributeType="Integer 32" minValueString="1" defaultValueString="1" usesScalarValueType="YES"/>
+        <attribute name="areaCode" optional="YES" attributeType="Integer 32" minValueString="0" maxValueString="999" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="setOne" attributeType="Integer 32" minValueString="0" maxValueString="999" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="setTwo" attributeType="Integer 32" minValueString="0" maxValueString="9999" defaultValueString="0" usesScalarValueType="YES"/>
+    </composite>
 </model>

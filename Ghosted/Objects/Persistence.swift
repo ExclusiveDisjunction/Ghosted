@@ -85,7 +85,7 @@ public class DataStack : ObservableObject, @unchecked Sendable {
             let container = NSPersistentCloudKitContainer(name: Self.containerName);
             
             let desc = NSPersistentStoreDescription();
-            desc.type = NSInMemoryStoreType;
+            desc.url = URL(fileURLWithPath: "/dev/null");
             desc.shouldAddStoreAsynchronously = false;
             container.persistentStoreDescriptions = [desc]
             
