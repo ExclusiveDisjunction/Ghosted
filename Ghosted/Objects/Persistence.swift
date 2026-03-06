@@ -43,8 +43,8 @@ public class DataStack : ObservableObject, @unchecked Sendable {
     public static let shared: DataStack = DataStack()
     public static let containerName = "Ghosted";
     
-    private var _persistentContainer: NSPersistentCloudKitContainer? = nil;
-    private var _debugContainer: NSPersistentCloudKitContainer? = nil;
+    private var _persistentContainer: NSPersistentContainer? = nil;
+    private var _debugContainer: NSPersistentContainer? = nil;
     
     public var currentContainer: NSPersistentContainer {
         #if DEBUG
@@ -54,13 +54,13 @@ public class DataStack : ObservableObject, @unchecked Sendable {
         #endif
     }
     
-    public var persistentContainer: NSPersistentCloudKitContainer {
+    public var persistentContainer: NSPersistentContainer {
         get {
             if let container = self._persistentContainer {
                 return container;
             }
             
-            let container = NSPersistentCloudKitContainer(name: Self.containerName);
+            let container = NSPersistentContainer(name: Self.containerName);
             
             container.loadPersistentStores { _, error in
                 if let error {
@@ -82,7 +82,7 @@ public class DataStack : ObservableObject, @unchecked Sendable {
                 return container;
             }
             
-            let container = NSPersistentCloudKitContainer(name: Self.containerName);
+            let container = NSPersistentContainer(name: Self.containerName);
             
             let desc = NSPersistentStoreDescription();
             desc.url = URL(fileURLWithPath: "/dev/null");
