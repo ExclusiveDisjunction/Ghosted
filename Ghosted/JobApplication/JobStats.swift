@@ -109,9 +109,6 @@ public struct JobStatsViewer : View {
                     ForEach(stats.counts, id: \.0.rawValue) { (state, count) in
                         SectorMark(angle: .value("Count", count), angularInset: 2)
                             .foregroundStyle(by: .value("State", state))
-                            .annotation(position: .automatic) {
-                                Text(state.display)
-                            }
                     }
                 }.chartLegend(.visible)
                     .frame(minHeight: 200)
