@@ -30,6 +30,7 @@
 /* Begin PBXFileReference section */
 		DD10E6B72F549CDC0079483C /* Ghosted.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ghosted.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD10E6CB2F549CDD0079483C /* GhostedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GhostedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDB941BF2F62731C00128095 /* Ghosted.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Ghosted.xctestplan; sourceTree = "<group>"; };
 		DDC6C8EB2F5A7498003112F4 /* GhostedUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GhostedUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -38,20 +39,19 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Resources/Icon.icon,
-				"Resources/Icons/1024x1/Icon-Draft2-iOS-ClearDark-1024x1024@1x.png",
-				"Resources/Icons/1024x1/Icon-Draft2-iOS-ClearLight-1024x1024@1x.png",
-				"Resources/Icons/1024x1/Icon-Draft2-iOS-Dark-1024x1024@1x.png",
-				"Resources/Icons/1024x1/Icon-Draft2-iOS-TintedDark-1024x1024@1x.png",
-				"Resources/Icons/1024x1/Icon-Draft2-iOS-TintedLight-1024x1024@1x.png",
+				"Resources/1024x1/Icon-Draft2-iOS-ClearDark-1024x1024@1x.png",
+				"Resources/1024x1/Icon-Draft2-iOS-ClearLight-1024x1024@1x.png",
+				"Resources/1024x1/Icon-Draft2-iOS-Dark-1024x1024@1x.png",
+				"Resources/1024x1/Icon-Draft2-iOS-TintedDark-1024x1024@1x.png",
+				"Resources/1024x1/Icon-Draft2-iOS-TintedLight-1024x1024@1x.png",
 			);
 			platformFiltersByRelativePath = {
-				"Resources/Icons/128x1/Icon-Draft2-iOS-Default-128x128@1x.png" = (macos, );
-				"Resources/Icons/16x1/Icon-Draft2-iOS-Default-16x16@1x.png" = (macos, );
-				"Resources/Icons/256x1/Icon-Draft2-iOS-Default-256x256@1x.png" = (macos, );
-				"Resources/Icons/32x1/Icon-Draft2-iOS-Default-32x32@1x.png" = (macos, );
-				"Resources/Icons/512x1/Icon-Draft2-iOS-Default-512x512@1x.png" = (macos, );
-				"Resources/Icons/64x1/Icon-Draft2-iOS-Default-64x64@1x.png" = (macos, );
+				"Resources/128x1/Icon-Draft2-iOS-Default-128x128@1x.png" = (macos, );
+				"Resources/16x1/Icon-Draft2-iOS-Default-16x16@1x.png" = (macos, );
+				"Resources/256x1/Icon-Draft2-iOS-Default-256x256@1x.png" = (macos, );
+				"Resources/32x1/Icon-Draft2-iOS-Default-32x32@1x.png" = (macos, );
+				"Resources/512x1/Icon-Draft2-iOS-Default-512x512@1x.png" = (macos, );
+				"Resources/64x1/Icon-Draft2-iOS-Default-64x64@1x.png" = (macos, );
 			};
 			target = DD10E6B62F549CDC0079483C /* Ghosted */;
 		};
@@ -107,6 +107,7 @@
 		DD10E6AE2F549CDC0079483C = {
 			isa = PBXGroup;
 			children = (
+				DDB941BF2F62731C00128095 /* Ghosted.xctestplan */,
 				DD10E6B92F549CDC0079483C /* Ghosted */,
 				DD10E6CE2F549CDD0079483C /* GhostedTests */,
 				DDC6C8EC2F5A7498003112F4 /* GhostedUITests */,
@@ -567,7 +568,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ghosted.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Ghosted";
 				XROS_DEPLOYMENT_TARGET = 26.2;
@@ -594,7 +595,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ghosted.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Ghosted";
 				XROS_DEPLOYMENT_TARGET = 26.2;

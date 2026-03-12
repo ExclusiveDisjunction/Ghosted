@@ -114,18 +114,10 @@ public class DataStack : ObservableObject, @unchecked Sendable {
     /// Every call to this variable results in a new, isolated container.
     public var emptyDebugContainer : NSPersistentContainer {
         get {
-            let bundle = Bundle(for: DataStack.self);
-            
-            guard
-                let modelURL = bundle.url(forResource: Self.containerName, withExtension: "mom"),
-                let model = NSManagedObjectModel(contentsOf: modelURL) else {
-                fatalError("Unable to load the managed object model.");
-            }
-            
-            let container = NSPersistentContainer(name: Self.containerName, managedObjectModel: model);
+            let container = NSPersistentContainer(name: Self.containerName);
             
             let desc = NSPersistentStoreDescription();
-            desc.type = NSInMemoryStoreType;
+            desc.url = URL(fileURLWithPath: "/dev/null");
             desc.shouldAddStoreAsynchronously = false;
             container.persistentStoreDescriptions = [desc]
             
