@@ -9,6 +9,7 @@ import SwiftUI
 import CoreData
 import os
 import ExDisj
+import Combine
 
 public enum AppLoadingPhase : String, Sendable {
     case loadingData = "Loading Data"
@@ -34,35 +35,43 @@ public extension View {
     }
 }
 
+public enum AppLoadingStates : Sendable, Identifiable{
+    case loading
+    case err(AppLoadError)
+    case loaded(LoadedAppState)
+    
+    public var id: Int {
+        switch self {
+            case .loading: 0
+            case .err(_): 1
+            case .loaded(_): 2
+        }
+    }
+}
+
 @MainActor
-@Observable
-public class AppLoadingHandle {
+public class AppLoadingHandle : ObservableObject {
     public init() {
-        self.loaded = nil;
-        self.error = nil;
-        self.phase = nil;
+        
     }
     
-    public var phase: AppLoadingPhase?;
-    public var loaded: LoadedAppState?;
-    public var error: AppLoadError?;
+    @Published public var phase: AppLoadingPhase = .loadingData;
+    @Published public var state: AppLoadingStates = .loading;
     
     public func reset() {
-        self.loaded = nil;
-        self.error = nil;
-        self.phase = nil;
+        self.state = .loading;
+        self.phase = .loadingData;
     }
     public func withError(err: any Error) {
         withAnimation {
-            self.error = .init(phase: self.phase ?? .loadingData, inner: err);
-            self.loaded = nil;
+            self.objectWillChange.send();
+            self.state = .err( .init(phase: self.phase, inner: err) )
         }
     }
     public func withLoaded(loaded: LoadedAppState) {
-        print("App signaled it's load status.")
         withAnimation {
-            self.loaded = loaded;
-            self.error = nil;
+            self.objectWillChange.send();
+            self.state = .loaded(loaded)
         }
     }
     
@@ -120,7 +129,7 @@ public actor AppLoader {
         await handle.withLoaded(loaded: completed);
     }
     public func reset() async throws {
-        guard let loaded = await handle.loaded else {
+        guard case .loaded(let loaded) = await handle.state else {
             await handle.reset();
             return;
         }
@@ -151,28 +160,32 @@ public extension EnvironmentValues {
 
 public struct LoadingGate<Load, Err, Content> : View where Load: View, Err: View, Content: View {
     public init(state: AppLoadingHandle, @ViewBuilder load: @escaping () -> Load, @ViewBuilder err: @escaping (AppLoadError) -> Err, @ViewBuilder content: @escaping () -> Content) {
-        self.state = state;
+        self._state = .init(wrappedValue: state);
         self.load = load;
         self.err = err;
         self.content = content;
     }
     
-    @Bindable private var state: AppLoadingHandle;
+    @ObservedObject private var state: AppLoadingHandle;
     private let load: () -> Load;
     private let err: (AppLoadError) -> Err;
     private let content: () -> Content;
     
+    @ViewBuilder
+    private var internalContent: some View {
+        switch state.state {
+            case .err(let error):
+                err(error)
+            case .loaded(let loaded):
+                content()
+                    .withLoadedApp(loaded)
+            case .loading:
+                load()
+        }
+    }
     public var body: some View {
-        if let error = state.error {
-            err(error)
-        }
-        else if let loaded = state.loaded {
-            content()
-                .withLoadedApp(loaded)
-        }
-        else {
-            load()
-        }
+        internalContent
+            .id(state.state.id)
     }
 }
 extension LoadingGate where Load == AppLoadingView, Err == AppLoadingErrorView {

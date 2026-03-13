@@ -9,7 +9,7 @@ import SwiftUI
 import Foundation
 
 public struct AppLoadingView : View {
-    @Bindable var state: AppLoadingHandle;
+    @ObservedObject var state: AppLoadingHandle;
     
     public var body: some View {
         VStack {
@@ -20,7 +20,7 @@ public struct AppLoadingView : View {
                 .padding()
             
             ProgressView {
-                Text(verbatim: state.phase?.rawValue ?? "Loading")
+                Text(verbatim: state.phase.rawValue)
             }
         }.padding()
     }

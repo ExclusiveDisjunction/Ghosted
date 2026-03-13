@@ -14,7 +14,7 @@ import ExDisj
 struct GhostedApp: App {
     init() {
         let state = AppLoadingHandle();
-        self.state = state;
+        self._state = .init(wrappedValue: state);
         self.loader = .init(handle: state);
         
         loadingTask = Task { [loader] in
@@ -23,7 +23,7 @@ struct GhostedApp: App {
     }
     
     let loader: AppLoader;
-    @State var state: AppLoadingHandle;
+    @StateObject var state: AppLoadingHandle;
     @State var loadingTask: Task<Void, Never>;
 
     var body: some Scene {
