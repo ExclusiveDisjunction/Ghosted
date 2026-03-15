@@ -47,13 +47,14 @@ public struct AllApplications : View {
     @ViewBuilder
     private func firstCol(app: JobApplication) -> some View {
         if horizontalSizeClass == .compact {
-            HStack {
+            VStack(alignment: .leading) {
                 Text(verbatim: app.position)
-                Spacer()
+                
                 DisplayableVisualizer(value: app.state)
                     .foregroundStyle(
-                        showStatusColors ? app.state.color : Color.primary
+                        showStatusColors && !applications.contains(app.id) ? app.state.color : Color.primary
                     )
+                    .font(.caption)
             }.swipeActions(edge: .trailing) {
                 SingularContextMenu(app, inspect: manifests.inspect, remove: manifests.delete, asSlide: true)
             }
@@ -145,7 +146,6 @@ public struct AllApplications : View {
             }
             .searchable(text: $searchState.uiQueryString)
             .onChange(of: searchState.queryString ) { _, _ in
-                print("Query string updated, changing predicates")
                 preparePredicate()
             }
             .focusedValue(\.jobApplicationManifests, manifests)

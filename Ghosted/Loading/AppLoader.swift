@@ -62,21 +62,21 @@ public class AppLoadingHandle : ObservableObject {
         self.state = .loading;
         self.phase = .loadingData;
     }
-    public func withError(err: any Error) {
-        withAnimation {
+    public func withError(err: any Error, animated: Bool) {
+        optionalWithAnimation(isOn: animated) {
             self.objectWillChange.send();
             self.state = .err( .init(phase: self.phase, inner: err) )
         }
     }
-    public func withLoaded(loaded: LoadedAppState) {
-        withAnimation {
+    public func withLoaded(loaded: LoadedAppState, animated: Bool) {
+        optionalWithAnimation(isOn: animated) {
             self.objectWillChange.send();
             self.state = .loaded(loaded)
         }
     }
     
-    public func updatePhase(to: AppLoadingPhase) {
-        withAnimation {
+    public func updatePhase(to: AppLoadingPhase, animated: Bool) {
+        optionalWithAnimation(isOn: animated) {
             self.phase = to
         }
     }
@@ -91,39 +91,31 @@ public actor AppLoader {
     private let handle: AppLoadingHandle;
     private let log: Logger;
     
-    public func load(beforeComplete: ((DataStack) async throws -> Void)? = nil) async {
+    public func load(animated: Bool, beforeComplete: ((DataStack) async throws -> Void)? = nil) async {
         log.info("Begining app loading process.")
-        await MainActor.run {
-            handle.reset();
-        }
+        await handle.reset();
         
         log.info("Loading data stack");
-        await MainActor.run {
-            handle.updatePhase(to: .loadingData);
-        }
+        await handle.updatePhase(to: .loadingData, animated: animated);
+        
         let stack: DataStack;
         do {
             stack = try await DataStack.currentContainer();
         }
         catch let e {
             log.error("Unable to load stack due to error \(e)");
-            await MainActor.run {
-                handle.withError(err: e);
-            }
+            
+            await handle.withError(err: e, animated: animated);
             return;
         }
         
         log.info("Loading status reviewer");
-        await MainActor.run {
-            handle.updatePhase(to: .reviewingApps);
-        }
+        await handle.updatePhase(to: .reviewingApps, animated: animated);
         
         let reviewer = StatusReviewer(cx: stack.newBackgroundContext());
         
         log.info("Completed loading main components.");
-        await MainActor.run {
-            handle.updatePhase(to: .wrappingUp);
-        }
+        await handle.updatePhase(to: .wrappingUp, animated: animated);
         
         if let beforeComplete = beforeComplete {
             do {
@@ -131,15 +123,14 @@ public actor AppLoader {
             }
             catch let e {
                 log.error("Post-load action could not be completed due to error \(e)")
-                await handle.withError(err: e)
+                await handle.withError(err: e, animated: animated)
             }
         }
         
         log.info("Completed app loading");
         let completed = LoadedAppState(stack: stack, reviewer: reviewer);
-        await MainActor.run {
-            handle.withLoaded(loaded: completed);
-        }
+        try? await Task.sleep(for: .seconds(0.5))
+        await handle.withLoaded(loaded: completed, animated: animated);
     }
     public func reset() async throws {
         guard case .loaded(let loaded) = await handle.state else {
@@ -152,10 +143,10 @@ public actor AppLoader {
         await handle.reset();
     }
     
-    public func resetAndPerform(action: @escaping (DataStack) async throws -> Void) async throws {
+    public func resetAndPerform(animated: Bool, action: @escaping (DataStack) async throws -> Void) async throws {
         try await self.reset();
         
-        await self.load(beforeComplete: action);
+        await self.load(animated: animated, beforeComplete: action);
     }
 }
 

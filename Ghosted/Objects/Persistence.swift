@@ -52,10 +52,8 @@ extension StoreDescription {
                     create: true
                 )
         ) else {
-            throw CocoaError(.fileNoSuchFile)
+            throw CocoaError(.fileWriteNoPermission)
         }
-        
-        print("Returning a store description pointing to \(url)")
         
         return StandardStoreDescription(modelUrl: [url], modelName: Ghosted.modelName, automaticLightweightMigrations: automaticMigrations)
     }
@@ -83,10 +81,8 @@ public extension DataStack {
     
     static func currentContainer() async throws -> DataStack {
 #if DEBUG
-        print("The current container is debug")
         return try await Self.debugContainer()
 #else
-        print("The current container is release")
         return try await Self.standardContainer()
 #endif
     }

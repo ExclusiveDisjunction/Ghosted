@@ -19,6 +19,7 @@ public struct StatusReviewPresenter : View {
     @Binding var selection: Set<NSManagedObjectID>;
     
     @Environment(\.managedObjectContext) private var cx;
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion;
     
     private func move(ids: Set<NSManagedObjectID>, to: JobApplicationState) {
         var toAdd: [ApplicationStatusSnapshot] = [];
@@ -45,12 +46,12 @@ public struct StatusReviewPresenter : View {
             state.updateStateTo = to;
         }
         
-        withAnimation {
+        optionalWithAnimation(isOn: !reduceMotion) {
             self.bySection = bySection;
         }
     }
     private func toggleUpdated(ids: Set<NSManagedObjectID>) {
-        withAnimation {
+        optionalWithAnimation(isOn: !reduceMotion) {
             for (_, applications) in bySection {
                 for app in applications {
                     if ids.contains(app.id) {
@@ -151,7 +152,7 @@ public struct StatusReviewPresenter : View {
             }
         }.onAppear {
             let results = Self.prepare(from: given)
-            withAnimation {
+            optionalWithAnimation(isOn: !reduceMotion) {
                 bySection = results;
             }
         }.withWarning(warning)

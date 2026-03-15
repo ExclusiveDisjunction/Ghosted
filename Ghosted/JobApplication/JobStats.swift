@@ -42,6 +42,7 @@ public struct JobStatsViewer : View {
     @State private var hadError = false;
     
     @Environment(\.dismiss) private var dismiss;
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion;
     
     /// Determines the stats on a background context from the container.
     private nonisolated func load() async throws -> JobStats {
@@ -64,14 +65,7 @@ public struct JobStatsViewer : View {
     }
     
     public var body: some View {
-        VStack {
-            HStack {
-                Text("Job Application Statistics")
-                    .font(.title2)
-                
-                Spacer()
-            }
-            
+        SheetBody("Job Application Statistics") {
             if hadError {
                 Image(systemName: "exclamationmark.triangle")
                     .resizable()
@@ -111,7 +105,7 @@ public struct JobStatsViewer : View {
                             let result = try await load();
                             
                             await MainActor.run {
-                                withAnimation {
+                                optionalWithAnimation(isOn: !reduceMotion) {
                                     stats = result;
                                 }
                             }
@@ -120,24 +114,14 @@ public struct JobStatsViewer : View {
                             print("Unable to load stats: \(e)");
                             
                             await MainActor.run {
-                                withAnimation {
+                                optionalWithAnimation(isOn: !reduceMotion) {
                                     hadError = true
                                 }
                             }
                         }
                     }
             }
-            
-            Spacer()
-            
-            HStack {
-                Spacer()
-                
-                Button("Ok") {
-                    dismiss()
-                }.buttonStyle(.borderedProminent)
-            }
-        }.padding()
+        }
     }
 }
 

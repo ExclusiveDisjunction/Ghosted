@@ -25,94 +25,40 @@ public struct JobApplicationInspect : View {
 #endif
     
     public var body: some View {
-        Grid {
-            GridRow {
-                Text("Position:")
-                    .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                
-                HStack {
-                    Text(verbatim: source.position)
-                    Spacer()
-                }
+        Form {
+            Section {
+                LabeledContent("Position", value: source.position)
+                LabeledContent("Company", value: source.company)
             }
             
-            GridRow {
-                Text("Company:")
-                    .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                
-                HStack {
-                    Text(verbatim: source.company)
-                    Spacer()
-                }
-            }
-            
-            GridRow {
-                Text("Applied On:").frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                
-                HStack {
-                    Text(source.appliedOn.formatted(date: .abbreviated, time: .shortened))
-                    
-                    Spacer()
-                }
-            }
-            
-            GridRow {
-                Text("Status:")
-                    .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                
-                HStack {
+            Section {
+                LabeledContent("Applied On", value: source.appliedOn.formatted(date: .numeric, time: .shortened))
+                LabeledContent("Status") {
                     DisplayableVisualizer(value: source.state)
-                    Spacer()
                 }
             }
             
-            GridRow {
-                Text("Position Kind:")
-                    .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                
-                HStack {
+            Section {
+                LabeledContent("Position Kind") {
                     DisplayableVisualizer(value: source.kind)
-                    Spacer()
                 }
-            }
-            
-            GridRow {
-                Text("Location:")
-                    .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
                 
-                HStack {
-                    Text(verbatim: source.location)
-                    Spacer()
+                LabeledContent("Location") {
+                    EmptyValuePlaceholder(source.location)
                 }
-            }
-            
-            GridRow {
-                Text("Job Kind:")
-                    .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
                 
-                HStack {
+                LabeledContent("Job Kind") {
                     DisplayableVisualizer(value: source.locationKind)
-                    Spacer()
                 }
             }
             
-            GridRow {
-                Text("Website URL:")
-                    .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                
-                HStack {
-                    Text(verbatim: source.website?.absoluteString ?? "-")
-                    Spacer()
+            Section {
+                LabeledContent("Website") {
+                    EmptyValuePlaceholder(source.website)
                 }
-            }
-            
-            GridRow {
-                Text("Notes:")
-                    .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
                 
-                HStack {
-                    Text(verbatim: source.notes)
-                    Spacer()
+                LabeledContent("Notes") {
+                    EmptyValuePlaceholder(source.notes)
                 }
             }
         }

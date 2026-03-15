@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import ExDisj
 
 public struct AppLoadingErrorView : View {
     public init(err: AppLoadError) {
@@ -15,6 +15,7 @@ public struct AppLoadingErrorView : View {
     
     private let err: AppLoadError;
     @State private var showingDetails: Bool = false;
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion;
     
     public var body: some View {
         VStack {
@@ -30,7 +31,7 @@ public struct AppLoadingErrorView : View {
             Text("Ghosted could not be loaded. If this issue persists, please contact us.")
             
             Button {
-                withAnimation {
+                optionalWithAnimation(isOn: !reduceMotion) {
                     showingDetails.toggle()
                 }
             } label: {

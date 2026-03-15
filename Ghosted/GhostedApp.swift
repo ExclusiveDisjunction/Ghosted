@@ -16,7 +16,7 @@ struct GhostedApp: App {
         self.loader = .init(handle: state);
         
         loadingTask = Task { [loader] in
-            await loader.load();
+            await loader.load(animated: true);
         }
     }
     

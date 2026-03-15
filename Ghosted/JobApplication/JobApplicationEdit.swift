@@ -25,129 +25,65 @@ public struct JobApplicationEdit : View {
 #endif
     
     public var body: some View {
-        ScrollView {
-            Grid {
-                GridRow {
-                    Text("Position:").frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    TextField("Position", text: $source.position)
-                        .textFieldStyle(.roundedBorder)
-                }
+        Form {
+            Section {
+                TextField("Position", text: $source.position)
+                TextField("Company", text: $source.company)
+            }
+            
+            Section {
+                DatePicker("Applied On", selection: $source.appliedOn, displayedComponents: [.date, .hourAndMinute])
                 
-                GridRow {
-                    Text("Company:").frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    TextField("Company", text: $source.company)
-                        .textFieldStyle(.roundedBorder)
-                }
-                
-                GridRow {
-                    Text("Applied On:").frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    HStack {
-                        DatePicker("", selection: $source.appliedOn, displayedComponents: [.date, .hourAndMinute])
-                            .labelsHidden()
-                        
-                        Spacer()
+                EnumPicker("Status", value: $source.state)
+                    .onChange(of: source.state) { _, _ in
+                        source.lastStatusUpdated = .now;
                     }
-                }
+            }
+            
+            Section {
+                EnumPicker("Position Kind", value: $source.kind)
                 
-                GridRow {
-                    Text("Status:")
-                        .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    EnumPicker(value: $source.state)
-                        .onChange(of: source.state) { _, _ in
-                            source.lastStatusUpdated = .now;
-                        }
-                }
+                TextField("Location", text: $source.location)
+                EnumPicker("Job Kind", value: $source.locationKind)
                 
-                GridRow {
-                    Text("Position Kind:")
-                        .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    EnumPicker(value: $source.kind)
-                }
-                
-                GridRow {
-                    Text("Location:")
-                        .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    TextField("Location", text: $source.location)
-                        .textFieldStyle(.roundedBorder)
-                }
-                
-                GridRow {
-                    Text("Job Kind:")
-                        .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    EnumPicker(value: $source.locationKind)
-                }
-                
-                GridRow {
-                    Text("Has Website?")
-                        .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    HStack {
-                        Toggle("", isOn: $hasUrl)
-                            .labelsHidden()
-                        
-                        Spacer()
-                    }
-                }
+            }
+            
+            Section {
+                Toggle("Has Website?", isOn: $hasUrl)
                 
                 if hasUrl {
-                    GridRow {
-                        Text("Website URL:")
-                            .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                        
-                        TextField("Location", text: $rawUrl)
-                            .textFieldStyle(.roundedBorder)
-                            .onChange(of: rawUrl) { _, raw in
-                                guard let url = URL(string: raw) else {
+                    TextField("Website", text: $rawUrl)
+                        .onChange(of: rawUrl) { _, raw in
+                            guard let url = URL(string: raw) else {
+                                urlError = true
+                                return;
+                            }
+                            
+                            urlError = false;
+                            source.website = url;
+                        }
+                        .onChange(of: hasUrl) { _, hasUrl in
+                            if hasUrl {
+                                guard let url = URL(string: rawUrl) else {
                                     urlError = true
                                     return;
                                 }
                                 
-                                urlError = false;
                                 source.website = url;
                             }
-                            .onChange(of: hasUrl) { _, hasUrl in
-                                if hasUrl {
-                                    guard let url = URL(string: rawUrl) else {
-                                        urlError = true
-                                        return;
-                                    }
-                                    
-                                    source.website = url;
-                                }
-                                else {
-                                    source.website = nil;
-                                }
-                            }
-                    }
-                    
-                    if urlError {
-                        GridRow {
-                            Text("")
-                            
-                            HStack {
-                                Text("The URL provided is not valid")
-                                    .foregroundStyle(.red)
-                                Spacer()
+                            else {
+                                source.website = nil;
                             }
                         }
+                    
+                    if urlError {
+                        Text("The URL provided is not valid")
+                            .foregroundStyle(.red)
                     }
                 }
                 
-                GridRow {
-                    Text("Notes:")
-                        .frame(minWidth: minWidth, maxWidth: maxWidth, alignment: .trailing)
-                    
-                    TextField("Notes", text: $source.notes)
-                        .textFieldStyle(.roundedBorder)
-                }
-            }.padding()
+                TextField("Notes", text: $source.notes)
+            }
         }
     }
 }
