@@ -5,9 +5,12 @@
 //  Created by Hollan Sellars on 3/11/26.
 //
 
+import SwiftUI
 import CoreData
 import Observation
 import os
+import ExDisj
+
 
 /// A collection of utilities for managing job applications based on their status.
 @Observable
@@ -154,4 +157,125 @@ public final class StatusReviewer : Sendable {
         
         try cx.save();
     }
+}
+
+@MainActor
+@Observable
+public final class StatusReviewViewModel : Sendable {
+    /// Determines which sheets are shown to the user.
+    public enum SheetMask {
+        case onlyResults
+        case allValues
+    }
+    
+    public enum State {
+        case idle
+        case loading
+        case hadError
+        case withResults([NSManagedObjectID : ApplicationStatusSnapshot])
+    }
+    
+    public init(using: StatusReviewer, log: Logger) {
+        self.reviewer = using;
+        self.log = log;
+    }
+    
+    public func updateState(to: State, animated: Bool) {
+        optionalWithAnimation(isOn: animated) {
+            self.state = to
+        }
+    }
+    
+    @discardableResult
+    public func compute(forDays: Int, relativeTo: Date = .now, calendar: Calendar, withLoadingSheet: Bool, animated: Bool) async -> Bool {
+        updateState(to: .loading, animated: animated)
+        if withLoadingSheet {
+            self.sheetMask = .allValues;
+        }
+        
+        do {
+            let result = try await reviewer.compute(log: log, daysToCheck: forDays, relativeTo: relativeTo, calendar: calendar);
+            
+            updateState(to: .withResults(result), animated: animated)
+            return true;
+        }
+        catch let e {
+            log.error("Encountered error while reviewing status: \(e.localizedDescription)")
+            updateState(to: .hadError, animated: animated)
+            return false;
+        }
+        
+    }
+    @discardableResult
+    public func update(newData: [NSManagedObjectID : ApplicationStatusSnapshot], calendar: Calendar, animated: Bool) async -> Bool {
+        do {
+            try await self.reviewer.completeUpdate(results: newData, calendar: calendar);
+            showingSheet = false;
+            
+            return true;
+        }
+        catch let e {
+            log.error("Unable to save due to error \(e.localizedDescription)");
+            self.hadSaveError = true;
+            return false;
+        }
+    }
+    
+    public let log: Logger;
+    public let reviewer: StatusReviewer;
+    public private(set) var sheetMask: SheetMask = .onlyResults;
+    public private(set) var state: State = .idle;
+    public var hadSaveError = false;
+    
+    public var showingSheet: Bool {
+        get {
+            switch self.state {
+                case .withResults(_): return true
+                case .hadError: fallthrough
+                case .loading:
+                    guard self.sheetMask == .allValues else {
+                        self.state = .idle;
+                        return false;
+                    }
+                    
+                    return true;
+                case .idle: return false
+            }
+        }
+        set {
+            self.state = .idle;
+            self.sheetMask = .onlyResults;
+        }
+    }
+}
+
+private struct WithStatusReviewerVM : ViewModifier {
+    @Bindable var vm: StatusReviewViewModel;
+    
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: $vm.showingSheet) {
+                StatusReviewSheet(vm: vm)
+            }
+            .alert("Unable to Save", isPresented: $vm.hadSaveError) {
+                OkButton()
+            } message: {
+                Text("The job applications could not be updated. Please try again.")
+            }
+    }
+}
+
+public extension View {
+    func withStatusReviewViewModel(_ vm: StatusReviewViewModel) -> some View {
+        self.modifier(WithStatusReviewerVM(vm: vm))
+    }
+}
+
+public extension EnvironmentValues {
+    @Entry var statusReviewer: StatusReviewer? = nil;
+    @Entry var statusReviewViewModel: StatusReviewViewModel? = nil;
+}
+
+public extension FocusedValues {
+    @Entry var statusReviewViewModel: StatusReviewViewModel? = nil;
 }
