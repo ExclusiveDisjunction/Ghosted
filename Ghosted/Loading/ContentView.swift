@@ -9,11 +9,23 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dataStack) private var dataStack;
+    @Environment(\.statusReviewer) private var statusReviewer;
+    @State private var statusReviewerVM : StatusReviewViewModel?;
 
-    var body: some View {
+    @ViewBuilder
+    private var content: some View {
         NavigationStack {
             AllApplications()
+        }
+        .focusedValue(\.statusReviewViewModel, statusReviewerVM)
+    }
+    var body: some View {
+        if let vm = statusReviewerVM {
+            content.withStatusReviewViewModel(vm)
+        }
+        else {
+            content
         }
     }
 

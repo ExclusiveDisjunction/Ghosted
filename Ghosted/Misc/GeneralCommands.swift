@@ -23,6 +23,7 @@ public struct GeneralCommands : Commands {
     @AppStorage("remindAppStatus") private var remindAppStatus: Bool = true;
     @AppStorage("statusReviewPeriod") private var statusReviewPeriod: StatusReviewPeriods = .twoWeeks;
     @FocusedValue(\.jobApplicationManifests) private var jobAppManifests;
+    @FocusedValue(\.statusReviewViewModel) private var statusReview;
     
     @Environment(\.openWindow) private var openWindow;
     
@@ -69,6 +70,7 @@ public struct GeneralCommands : Commands {
                 } label: {
                     Text("Check Follow-Ups Now")
                 }.keyboardShortcut("F", modifiers: [.command])
+                    .disabled(jobAppManifests == nil)
                 
                 Picker("Default Follow-Up Period", selection: $statusReviewPeriod) {
                     Text("After One Week")
@@ -82,7 +84,7 @@ public struct GeneralCommands : Commands {
                     
                     Text("After Two Months")
                         .tag(StatusReviewPeriods.twoMonths)
-                }
+                }.disabled(jobAppManifests == nil)
                 
                 Menu {
                     Button("One Week from Today") {
@@ -102,7 +104,7 @@ public struct GeneralCommands : Commands {
                     }.keyboardShortcut("8", modifiers: [.command, .option, .shift])
                 } label: {
                     Text("Check Follow-Ups For...")
-                }
+                }.disabled(jobAppManifests == nil)
             }
         }
         
