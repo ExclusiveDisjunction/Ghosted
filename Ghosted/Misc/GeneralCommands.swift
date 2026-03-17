@@ -32,11 +32,12 @@ public struct GeneralCommands : Commands {
     
     private func performFollowUps(forDays: Int) {
         Task {
-            await statusReview?.compute(forDays: forDays, calendar: calendar, animated: !reduceMotion);
+            await statusReview?.compute(forDays: forDays, calendar: calendar, animated: !reduceMotion, showOnEmpty: true);
         }
     }
     
     public var body: some Commands {
+        /*
         CommandGroup(after: .undoRedo) {
             Button {
                 
@@ -58,7 +59,9 @@ public struct GeneralCommands : Commands {
             }.keyboardShortcut(.delete, modifiers: .command)
                 .foregroundStyle(.red)
         }
+         */
         
+        /*
         CommandMenu("Jobs") {
             Button {
                 jobAppManifests?.inspect.openAdding()
@@ -116,6 +119,7 @@ public struct GeneralCommands : Commands {
                 }.disabled(jobAppManifests == nil)
             }
         }
+         */
         
         CommandGroup(after: .textFormatting) {
             Toggle(isOn: $showStatusColors) {

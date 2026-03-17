@@ -14,6 +14,8 @@ public extension EnvironmentValues {
     @Entry var logger: Logger? = nil;
 }
 
+
+
 struct GhostedApp: App {
     init() {
         let state = AppLoadingHandle();
@@ -28,14 +30,31 @@ struct GhostedApp: App {
     let loader: AppLoader;
     @StateObject var state: AppLoadingHandle;
     let loadingTask: Task<Void, Never>;
+    
+    @AppStorage("themeMode") private var themeMode: ThemeMode = .system;
+    
+    private var colorScheme: ColorScheme? {
+        switch themeMode {
+            case .light: return .light
+            case .dark: return .dark
+            default: return nil
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
             LoadingGate(state: state) {
                 ContentView()
-            }
+            }.preferredColorScheme(colorScheme)
         }.commands(content: GeneralCommands.init)
             .environment(\.appLoader, loader)
+        
+#if os(macOS)
+        Settings {
+            SettingsView()
+                .preferredColorScheme(colorScheme)
+        }
+#endif
     }
 }
 

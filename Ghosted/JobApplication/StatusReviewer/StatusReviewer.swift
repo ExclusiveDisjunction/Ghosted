@@ -81,9 +81,9 @@ public final class StatusReviewer : Sendable {
     ///
     /// The purpose of this method is to determine all outdated ``JobApplication``s. 'Outdated', in this context, refers to the state being applied, in interview, or under review, and updated at least `daysToCheck` days ago.
     /// If the application has no last updated date, it will fetch it and use ``JobApplication/appliedOn`` as the source of truth.
-    public nonisolated func compute(log: Logger?, daysToCheck: Int, relativeTo: Date, calendar: Calendar) async throws -> StatusReviewer.ById {
+    public nonisolated func compute(daysToCheck: Int, relativeTo: Date, calendar: Calendar) async throws -> StatusReviewer.ById {
         
-        let toUpdate: [StaticApplicationStatusSnapshot] = try await cx.perform { [cx] in
+        let toUpdate: [StaticApplicationStatusSnapshot] = try await cx.perform { [cx, log] in
             let req = JobApplication.fetchRequest();
             req.predicate = NSPredicate(format: "internalState IN %@", Self.interestingApplicationStates);
             
@@ -216,15 +216,20 @@ public final class StatusReviewer : Sendable {
     }
     
     @discardableResult
-    public nonisolated func compute(forDays: Int, relativeTo: Date = .now, calendar: Calendar, animated: Bool) async -> Bool {
+    public nonisolated func compute(forDays: Int, relativeTo: Date = .now, calendar: Calendar, animated: Bool, showOnEmpty: Bool) async -> Bool {
         log?.info("Asked to determine job applications for the last \(forDays) day(s)")
         await updateState(to: .loading, animated: animated)
         
         do {
-            let result = try await self.compute(log: log, daysToCheck: forDays, relativeTo: relativeTo, calendar: calendar);
+            let result = try await self.compute(daysToCheck: forDays, relativeTo: relativeTo, calendar: calendar);
             log?.info("Completed computation, found \(result.count) result(s)")
             
-            await updateState(to: .withResults(result), animated: animated)
+            if !showOnEmpty && result.isEmpty {
+                await updateState(to: .idle, animated: animated)
+            }
+            else {
+                await updateState(to: .withResults(result), animated: animated)
+            }
             return true;
         }
         catch let e {

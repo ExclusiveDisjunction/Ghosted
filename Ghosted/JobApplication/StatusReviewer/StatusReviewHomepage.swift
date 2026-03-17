@@ -21,7 +21,7 @@ public struct StatusReviewHomepage : View {
     
     private func compute(forDays: Int) {
         Task {
-            await statusReviewer?.compute(forDays: forDays, calendar: calendar, animated: !reduceMotion)
+            await statusReviewer?.compute(forDays: forDays, calendar: calendar, animated: !reduceMotion, showOnEmpty: true)
         }
     }
     
@@ -41,6 +41,7 @@ public struct StatusReviewHomepage : View {
             
             Text("Ghosted can help you determine if you should reach out \nto an employer, or just update the status.")
                 .multilineTextAlignment(.center)
+                .padding(.bottom)
             
             if (statusReviewer?.isLoading ?? false) || (statusReviewer?.showingSheet ?? false) {
                 ProgressView()
@@ -49,6 +50,7 @@ public struct StatusReviewHomepage : View {
                 Button("Check for Follow-Ups") {
                     compute(forDays: statusReviewPeriod.rawValue)
                 }.disabled(statusReviewer == nil)
+                    .buttonStyle(.borderedProminent)
                 
                 Menu {
                     Button("One Week from Today") {
@@ -69,6 +71,7 @@ public struct StatusReviewHomepage : View {
                 } label: {
                     Text("Check follow-ups for...")
                 }.disabled(statusReviewer == nil)
+                    .buttonStyle(.bordered)
             }
         }.padding()
             .navigationTitle("Follow-Up Reminders")
