@@ -27,12 +27,11 @@ public struct StatusReviewerSheet : View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion;
     @Environment(\.dismiss) private var dismiss;
     
-    private func move(ids: Set<NSManagedObjectID>, to: JobApplicationState) {
+    public static nonisolated func move(ids: Set<NSManagedObjectID>, to: JobApplicationState, starting: BySection) async -> BySection {
         var toAdd: [ApplicationStatusSnapshot] = [];
-        
-        var bySection = self.bySection; //Keeps UI stable until the computation is complete.
-        
-        for (currentState, applications) in bySection {
+        var starting = starting;
+
+        for (currentState, applications) in starting {
             var targetIndices = IndexSet();
             var targets = [ApplicationStatusSnapshot]();
             for (i, app) in applications.enumerated() {
@@ -44,16 +43,28 @@ public struct StatusReviewerSheet : View {
             
             toAdd.append(contentsOf: targets);
             // Since our applications is not going to update our true state, we have to manage it here.
-            bySection[Int(currentState.rawValue)].1.remove(atOffsets: targetIndices);
+            starting[Int(currentState.rawValue)].1.remove(atOffsets: targetIndices);
         }
         
-        bySection[Int(to.rawValue)].1.append(contentsOf: toAdd);
-        for state in toAdd {
-            state.updateStateTo = to;
+        starting[Int(to.rawValue)].1.append(contentsOf: toAdd);
+        await MainActor.run {
+            for state in toAdd {
+                state.updateStateTo = to;
+            }
         }
         
-        optionalWithAnimation(isOn: !reduceMotion) {
-            self.bySection = bySection;
+        return starting;
+    }
+    
+    private func move(ids: Set<NSManagedObjectID>, to: JobApplicationState) {
+        Task(priority: .userInitiated) {
+            let result = await Self.move(ids: ids, to: to, starting: self.bySection)
+            
+            await MainActor.run {
+                optionalWithAnimation(isOn: !reduceMotion) {
+                    self.bySection = bySection;
+                }
+            }
         }
     }
     private func toggleUpdated(ids: Set<NSManagedObjectID>) {

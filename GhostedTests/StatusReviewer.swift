@@ -43,13 +43,12 @@ struct StatusReviewFiller : ContainerDataFiller {
 @Suite("StatusReviewerTests")
 struct StatusReviewerTests : Sendable {
     static func prepare() async throws -> DataStack {
-        let container = try await DataStack.emptyDebugContainer();
-        
-        let cx = container.viewContext;
-        try await cx.perform {
-            try StatusReviewFiller().fill(context: cx);
-            try cx.save();
-        }
+        let container = try await DataStack(
+            desc: .builder(
+                filler: StatusReviewFiller(),
+                backing: .inMemory()
+            )
+        )
         
         return container;
     }
@@ -63,7 +62,7 @@ struct StatusReviewerTests : Sendable {
         
         reviewer = StatusReviewer(container: container, logger: log);
         
-        targets = try await reviewer.compute(log: log, daysToCheck: 10, relativeTo: .now, calendar: cal);
+        targets = try await reviewer.compute(daysToCheck: 10, relativeTo: .now, calendar: cal);
     }
     
     let container: DataStack;
@@ -213,5 +212,10 @@ struct StatusReviewerTests : Sendable {
         await MainActor.run {
             #expect(demangled == targets);
         }
+    }
+    
+    @Test("MoveToSection")
+    func moveToSection() async throws {
+        
     }
 }
