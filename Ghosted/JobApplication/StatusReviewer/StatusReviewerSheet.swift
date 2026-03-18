@@ -62,7 +62,7 @@ public struct StatusReviewerSheet : View {
             
             await MainActor.run {
                 optionalWithAnimation(isOn: !reduceMotion) {
-                    self.bySection = bySection;
+                    self.bySection = result;
                 }
             }
         }
@@ -224,4 +224,25 @@ public struct StatusReviewerSheet : View {
             }.buttonStyle(.borderedProminent)
         }
     }
+}
+
+@available(macOS 15, iOS 18, *)
+#Preview(traits: .varianceSampleData) {
+    @Previewable @Environment(\.dataStack) var dataStack;
+    @Previewable @Environment(\.calendar) var calendar;
+    @Previewable @State var reviewer: StatusReviewer?;
+    @Previewable @State var sampleData: StatusReviewer.ById?;
+    
+    NavigationStack {
+        if let reviewer = reviewer, let sampleData = sampleData {
+            StatusReviewerSheet(vm: reviewer, given: sampleData)
+        }
+        else {
+            ProgressView()
+                .task {
+                    reviewer = StatusReviewer(container: dataStack, logger: nil)
+                    sampleData = try? await reviewer?.compute(daysToCheck: 14, relativeTo: .now, calendar: calendar)
+                }
+        }
+    }.frame(width: 400, height: 350)
 }

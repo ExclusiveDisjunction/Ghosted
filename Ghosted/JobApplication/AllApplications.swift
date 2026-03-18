@@ -9,8 +9,6 @@ import SwiftUI
 import CoreData
 import ExDisj
 
-
-
 /// A view that provides an overview of all job applications, with the ability to filter, search, and provide statistics.
 public struct AllApplications : View {
     
@@ -24,7 +22,6 @@ public struct AllApplications : View {
     @Environment(\.dataStack) private var dataStack;
     
     @State private var showingFilter = false;
-    @State private var showingStats = false;
     
     private var filterState = ApplicationsFilterState();
     @StateObject private var searchState = ApplicationsSearchState();
@@ -97,6 +94,7 @@ public struct AllApplications : View {
                 app.company = "";
                 app.appliedOn = .now;
                 app.state = .applied;
+                app.lastStatusUpdated = .now;
                 app.location = "";
                 app.locationKind = .onSite;
                 app.kind = .fullTime;
@@ -104,25 +102,17 @@ public struct AllApplications : View {
                 app.website = nil;
             }
             .toolbar {
-                ToolbarItem(placement: .secondaryAction) {
-                    Button {
-                        showingStats = true;
-                    } label: {
-                        Label("Show Statistics", systemImage: "chart.bar")
-                    }
-                }
+                #if os(iOS)
+                let placement = ToolbarItemPlacement.topBarTrailing
+                #else
+                let placement = ToolbarItemPlacement.secondaryAction;
+                #endif
                 
-                ToolbarItem(placement: .secondaryAction) {
+                ToolbarItem(placement: placement) {
                     Button {
                         showingFilter = true
                     } label: {
-                        Label("Filtering", systemImage: "line.3.horizontal.decrease")
-                    }
-                }
-                
-                ToolbarItem(placement: .secondaryAction) {
-                    Toggle(isOn: $showStatusColors) {
-                        Label("Show Colors on Job Status", systemImage: "eyedropper.full")
+                        Label("Filters", systemImage: "line.3.horizontal.decrease")
                     }
                 }
                 
@@ -138,9 +128,6 @@ public struct AllApplications : View {
                 #endif
             }
             .navigationTitle("Ghosted")
-            .sheet(isPresented: $showingStats) {
-                JobStatsViewer(container: dataStack)
-            }
             .sheet(isPresented: $showingFilter, onDismiss: preparePredicate) {
                 JobsFilter(filterState)
             }
@@ -148,11 +135,12 @@ public struct AllApplications : View {
             .onChange(of: searchState.queryString ) { _, _ in
                 preparePredicate()
             }
-            .focusedValue(\.jobApplicationManifests, manifests)
     }
 }
 
 @available(macOS 15, iOS 18, *)
 #Preview(traits: .sampleData) {
-    AllApplications()
+    NavigationStack {
+        AllApplications()
+    }
 }

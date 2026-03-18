@@ -11,7 +11,7 @@ import ExDisj
 import Combine
 
 /// The state of an application, specifically, which stage of the job application process the job is in.
-public enum JobApplicationState : Int16, Equatable, Hashable, Codable, Sendable, CaseIterable, Identifiable {
+public enum JobApplicationState : Int16, Equatable, Hashable, Codable, Sendable, CaseIterable, Identifiable, CustomStringConvertible {
     /// The application has been submitted.
     case applied = 0
     /// The application is being reviewed by the hiring team.
@@ -41,6 +41,17 @@ public enum JobApplicationState : Int16, Equatable, Hashable, Codable, Sendable,
                 Color.green
             case .ghosted:
                 Color.gray
+        }
+    }
+    
+    public var description: String {
+        switch self {
+            case .applied: "Applied"
+            case .underReview: "Under Review"
+            case .inInterview: "In Interview"
+            case .rejected: "Rejected"
+            case .accepted: "Accepted"
+            case .ghosted: "Ghosted"
         }
     }
 }

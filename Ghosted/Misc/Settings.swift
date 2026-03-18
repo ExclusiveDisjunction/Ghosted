@@ -24,64 +24,13 @@ enum ThemeMode : Int, Identifiable, CaseIterable, Displayable {
     var id: Self { self }
 }
 
+
+
 public struct SettingsView : View {
     @AppStorage("themeMode") private var themeMode: ThemeMode = .system;
-    @AppStorage("showStatusColors") private var showStatusColors: Bool = true;
     @AppStorage("remindAppStatus") private var remindAppStatus: Bool = true;
     @AppStorage("statusReviewPeriod") private var statusReviewPeriod: StatusReviewPeriods = .twoWeeks;
-    
-    @ViewBuilder
-    private var statusColors: some View {
-        VStack(alignment: .leading) {
-            Text("Ghosted shows each job application status with colors, to help you quickly differentiate applications.\nHowever, if you have trouble seeing the colors, or they are bothersome, you can disable them here.")
-                .multilineTextAlignment(.leading)
-                .frame(minHeight: 80)
-            
-            Toggle("Use Status Colors?", isOn: $showStatusColors)
-            
-            Divider()
-            
-            List {
-                Section("With Colors") {
-                    VStack(alignment: .leading) {
-                        Text(verbatim: "Example 1")
-                        
-                        DisplayableVisualizer(value: JobApplicationState.accepted)
-                            .foregroundStyle(JobApplicationState.accepted.color)
-                            .font(.caption)
-                    }
-                    
-                    VStack(alignment: .leading) {
-                        Text(verbatim: "Example 2")
-                        
-                        DisplayableVisualizer(value: JobApplicationState.rejected)
-                            .foregroundStyle(JobApplicationState.rejected.color)
-                            .font(.caption)
-                    }
-                }
-                
-                Section("Without Colors") {
-                    VStack(alignment: .leading) {
-                        Text(verbatim: "Example 1")
-                        
-                        DisplayableVisualizer(value: JobApplicationState.accepted)
-                            .foregroundStyle(.secondary)
-                            .font(.caption)
-                    }
-                    
-                    VStack(alignment: .leading) {
-                        Text(verbatim: "Example 2")
-                        
-                        DisplayableVisualizer(value: JobApplicationState.rejected)
-                            .foregroundStyle(.secondary)
-                            .font(.caption)
-                    }
-                }
-            }
-        }.navigationTitle("Status Color Settings")
-            .frame(minHeight: 130)
-            .padding()
-    }
+
     
     public var body: some View {
         NavigationStack {
@@ -89,7 +38,7 @@ public struct SettingsView : View {
                 Section("Colors") {
                     EnumPicker("Theme", value: $themeMode)
                     NavigationLink("Status Colors") {
-                        statusColors
+                        StatusColorsSettingsView()
                     }
                 }
                 

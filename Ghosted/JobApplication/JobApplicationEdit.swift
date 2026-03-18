@@ -29,6 +29,7 @@ public struct JobApplicationEdit : View {
             Section {
                 TextField("Position", text: $source.position)
                 TextField("Company", text: $source.company)
+                    .autocorrectionDisabled()
             }
             
             Section {
@@ -44,6 +45,7 @@ public struct JobApplicationEdit : View {
                 EnumPicker("Position Kind", value: $source.kind)
                 
                 TextField("Location", text: $source.location)
+                    .autocorrectionDisabled()
                 EnumPicker("Job Kind", value: $source.locationKind)
                 
             }
@@ -53,6 +55,7 @@ public struct JobApplicationEdit : View {
                 
                 if hasUrl {
                     TextField("Website", text: $rawUrl)
+                        .autocorrectionDisabled()
                         .onChange(of: rawUrl) { _, raw in
                             guard let url = URL(string: raw) else {
                                 urlError = true

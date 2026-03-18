@@ -9,28 +9,6 @@ import ExDisj
 import CoreData
 import SwiftUI
 
-public struct DebugContainerFiller : ContainerDataFiller {
-    public func fill(context: NSManagedObjectContext) throws {
-        let app1 = JobApplication(context: context);
-        app1.appliedOn = .now;
-        app1.company = "ExDisj";
-        app1.kind = .fullTime;
-        app1.locationKind = .remote;
-        app1.location = "";
-        app1.position = "Junior Developer";
-        app1.state = .underReview;
-        
-        let app2 = JobApplication(context: context);
-        app2.appliedOn = .now;
-        app2.company = "ExDisj";
-        app2.kind = .partTime;
-        app2.locationKind = .hybrid;
-        app2.location = "Lakeland, FL";
-        app2.position = "App Developer";
-        app2.state = .rejected;
-    }
-}
-
 //Ghosted specific
 public let modelName: String = "Ghosted";
 
@@ -81,10 +59,60 @@ public extension DataStack {
     
     static func currentContainer() async throws -> DataStack {
 #if DEBUG
+        print("Doing debug container")
         return try await Self.debugContainer()
 #else
+        print("Doing standard container")
         return try await Self.standardContainer()
 #endif
+    }
+}
+
+public struct DebugContainerFiller : ContainerDataFiller {
+    public func fill(context: NSManagedObjectContext) throws {
+        let app1 = JobApplication(context: context);
+        app1.appliedOn = .now;
+        app1.company = "ExDisj";
+        app1.kind = .fullTime;
+        app1.locationKind = .remote;
+        app1.location = "";
+        app1.position = "Junior Developer";
+        app1.state = .underReview;
+        
+        let app2 = JobApplication(context: context);
+        app2.appliedOn = .now;
+        app2.company = "ExDisj";
+        app2.kind = .partTime;
+        app2.locationKind = .hybrid;
+        app2.location = "Lakeland, FL";
+        app2.position = "App Developer";
+        app2.state = .rejected;
+    }
+}
+
+public struct VarianceContainerFiller : ContainerDataFiller {
+    public func fill(context: NSManagedObjectContext) throws {
+        var rand = SystemRandomNumberGenerator();
+        let calendar = Calendar.current;
+        
+        for i in 1...30 {
+            let app = JobApplication(context: context);
+            guard let date = calendar.date(
+                byAdding: .day,
+                value: Int.random(in: (-31)...(-2), using: &rand),
+                to: .now,
+            ) else {
+                continue;
+            }
+            
+            app.position = "Position \(i)";
+            app.company = "Company \(i)";
+            app.appliedOn = date;
+            app.kind = .fullTime;
+            app.locationKind = .remote;
+            app.location = "";
+            app.state = JobApplicationState(rawValue: Int16.random(in: 0...5, using: &rand))!;
+        }
     }
 }
 
@@ -98,8 +126,24 @@ public struct DebugSampleData: PreviewModifier {
             .environment(\.dataStack, context)
     }
 }
+public struct VarianceSampleData: PreviewModifier {
+    public static func makeSharedContext() async throws -> DataStack {
+        try await DataStack(
+            desc: .builder(
+                filler: VarianceContainerFiller(),
+                backing: .inMemory()
+            )
+        )
+    }
+    
+    public func body(content: Content, context: DataStack) -> some View {
+        content
+            .environment(\.dataStack, context)
+    }
+}
 
 @available(macOS 15, iOS 18, *)
 public extension PreviewTrait where T == Preview.ViewTraits {
     static let sampleData: Self = .modifier(DebugSampleData())
+    static let varianceSampleData: Self = .modifier(VarianceSampleData())
 }
