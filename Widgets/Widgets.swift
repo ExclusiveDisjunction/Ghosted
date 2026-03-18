@@ -25,41 +25,33 @@ struct AppliedCountProvider : TimelineProvider {
     }
     
     func getTimeline(in context: Context, completion: @escaping (Timeline<AppliedCountEntry>) -> Void) {
-        
-    }
-}
-
-/*
-struct Provider: TimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), emoji: "😀")
-    }
-
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), emoji: "😀")
-        completion(entry)
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [SimpleEntry] = []
-
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, emoji: "😀")
-            entries.append(entry)
+        var entries: [AppliedCountEntry] = [];
+        do {
+            if let loadedEntry: AppliedCountEntry = try getFileContents(forWidget: .appliedCounts) {
+                entries.append(loadedEntry);
+            }
+            let calendar = Calendar.current;
+            
+            guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: .now)) else {
+                #if DEBUG
+                print("Unable to get tomorrow")
+                #endif
+                
+                completion(.init(entries: [], policy: .never))
+                return;
+            }
+            
+            entries.append(.init(date: tomorrow, count: 0))
         }
-
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
+        catch let e {
+#if DEBUG
+            print("Unable to load the widget contents, \(e)")
+#endif
+        }
+        
+        completion(.init(entries: entries, policy: .never))
     }
-
-//    func relevances() async -> WidgetRelevances<Void> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
 }
- */
 
 struct WidgetsEntryView : View {
     let entry: AppliedCountEntry;

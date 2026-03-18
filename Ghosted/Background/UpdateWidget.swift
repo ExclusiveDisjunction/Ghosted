@@ -8,6 +8,8 @@
 import WidgetKit
 import CoreData
 import ExDisj
+import Combine
+import os
 
 public func updateAppCountsWidget(using: DataStack, forDate: Date = .now, calendar: Calendar, fileManager: FileManager = .default) async throws {
     let cx = using.newBackgroundContext();
@@ -32,4 +34,42 @@ public func updateAppCountsWidget(using: DataStack, forDate: Date = .now, calend
     };
     
     try saveFileContents(data: entry, fileManager: fileManager, forWidget: .appliedCounts)
+}
+
+@Observable
+public final class WidgetDataManager : Sendable {
+    @MainActor
+    public init(using: DataStack, calendar: Calendar, log: Logger?) {
+        self.log = log;
+        self.calendar = calendar;
+        self.cx = using.newBackgroundContext();
+        self.cancel = nil;
+        
+        let vcx = using.viewContext;
+        
+        NotificationCenter.default.addObserver(
+            forName: .NSManagedObjectContextDidSave,
+            object: cx,
+            queue: OperationQueue.main
+        ) { [weak self] note in
+            self?.handleSave(note: note)
+        }
+    }
+    
+    private let log: Logger?;
+    private let cx: NSManagedObjectContext;
+    private let calendar: Calendar;
+    @MainActor
+    private var cancel: AnyCancellable?;
+    
+    private func handleSave(note: Notification) {
+        guard let info = note.userInfo else {
+            log?.warning("Got notification to update widget information, but there is no payload.");
+            return;
+        }
+        
+        log?.info("Processing message to update widgets, if target information is obtained.");
+        
+        let today = calendar.startOfDay(for: .now);
+    }
 }

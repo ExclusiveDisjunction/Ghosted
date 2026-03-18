@@ -10,7 +10,7 @@
 		DD72BF0D2F56A22B009002F1 /* ExDisj in Frameworks */ = {isa = PBXBuildFile; productRef = DD72BF0C2F56A22B009002F1 /* ExDisj */; };
 		DDB3F2892F6A4EF300E2D031 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DDB3F2882F6A4EF300E2D031 /* WidgetKit.framework */; };
 		DDB3F28B2F6A4EF300E2D031 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DDB3F28A2F6A4EF300E2D031 /* SwiftUI.framework */; };
-		DDB3F2962F6A4EF300E2D031 /* WidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DDB3F2862F6A4EF300E2D031 /* WidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DDB3F2962F6A4EF300E2D031 /* WidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DDB3F2862F6A4EF300E2D031 /* WidgetsExtension.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DDB3F29D2F6A545900E2D031 /* AppliedCountEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB3F29C2F6A544900E2D031 /* AppliedCountEntry.swift */; };
 		DDB3F29E2F6A545900E2D031 /* AppliedCountEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB3F29C2F6A544900E2D031 /* AppliedCountEntry.swift */; };
 		DDB3F2A12F6A586C00E2D031 /* WidgetTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB3F2A02F6A586900E2D031 /* WidgetTarget.swift */; };
@@ -428,6 +428,7 @@
 		};
 		DDB3F2952F6A4EF300E2D031 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = DDB3F2852F6A4EF300E2D031 /* WidgetsExtension */;
 			targetProxy = DDB3F2942F6A4EF300E2D031 /* PBXContainerItemProxy */;
 		};
@@ -754,7 +755,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.exdisj.Ghosted.Widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -791,7 +792,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.exdisj.Ghosted.Widgets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
