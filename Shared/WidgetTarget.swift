@@ -21,8 +21,8 @@ public enum WidgetTarget : Sendable, Codable, Equatable, Hashable, CaseIterable 
 
 public enum WidgetLoadError : Error {
     case noSuchFile
-    case fileLoad(any Error)
-    case decode(any Error)
+    case fileOps(any Error)
+    case coding(any Error)
 }
 
 public func getFileContents<T>(fileManager: FileManager = .default, forWidget: WidgetTarget) throws(WidgetLoadError) -> T? where T: Decodable {
@@ -40,14 +40,14 @@ public func getFileContents<T>(fileManager: FileManager = .default, forWidget: W
         contents = try Data(contentsOf: fileUrl);
     }
     catch let e {
-        throw .fileLoad(e)
+        throw .fileOps(e)
     }
     
     do {
         return try JSONDecoder().decode(T.self, from: contents);
     }
     catch let e {
-        throw .decode(e)
+        throw .coding(e)
     }
 }
 public func saveFileContents<T>(data: T, fileManager: FileManager = .default, forWidget: WidgetTarget) throws(WidgetLoadError) where T: Encodable {
@@ -62,10 +62,13 @@ public func saveFileContents<T>(data: T, fileManager: FileManager = .default, fo
         toWrite = try JSONEncoder().encode(data);
     }
     catch let e {
-        throw .decode(e)
+        throw .coding(e)
     }
     
-    guard fileManager.createFile(atPath: fileUrl.path(), contents: toWrite) else {
-        throw .noSuchFile
+    do {
+        try toWrite.write(to: fileUrl)
+    }
+    catch let e {
+        throw .fileOps(e)
     }
 }

@@ -48,41 +48,52 @@ func updateAppCountsWidget(count: Int, forDate: Date = .now, fileManager: FileMa
     try saveFileContents(data: entry, fileManager: fileManager, forWidget: .appliedCounts)
 }
 
-public class NotificationToken : @unchecked Sendable {
-    @MainActor
-    public init(_ inner: NSObjectProtocol) {
-        self.inner = inner;
+public actor NotificationToken {
+    private struct InnerToken : @unchecked Sendable {
+        let token: NSObjectProtocol;
     }
     
+    public nonisolated var unownedExecutor: UnownedSerialExecutor {
+        MainActor.sharedUnownedExecutor
+    }
+    
+    @MainActor
+    public init(_ inner: NSObjectProtocol, center: NotificationCenter) {
+        debugPrint("Opening notification token");
+        
+        let token = InnerToken(token: inner);
+        self.tokenBox = .init(initialState: token);
+        self.center = center;
+    }
     deinit {
+        debugPrint("Closing notification token")
         self.cancel()
     }
-
+    
     public static nonisolated func createAsync(center: NotificationCenter = .default, forName: NSNotification.Name?, object: (any Sendable)?, perform: @Sendable @escaping (Notification) -> Void) async -> NotificationToken? {
         return await MainActor.run {
             return create(center: center, forName: forName, object: object, perform: perform)
         }
     }
-    public static nonisolated func createAsync(deposit: inout NotificationToken?, center: NotificationCenter = .default, forName: NSNotification.Name?, object: (any Sendable)?, perform: @Sendable @escaping (Notification) -> Void) async {
-        let token = await MainActor.run {
-            return create(center: center, forName: forName, object: object, perform: perform)
-        }
-        
-        deposit = token;
-    }
     @MainActor
     public static func create(center: NotificationCenter = .default, forName: NSNotification.Name?, object: Any?, perform: @Sendable @escaping (Notification) -> Void) -> NotificationToken {
         let token = center.addObserver(forName: forName, object: object, queue: OperationQueue.main, using: perform);
         
-        return NotificationToken(token)
+        return NotificationToken(token, center: center)
     }
     
-    @MainActor
-    private let inner: NSObjectProtocol;
+    private let center: NotificationCenter;
+    private let tokenBox: OSAllocatedUnfairLock<InnerToken?>;
     
     public nonisolated func cancel() {
-        DispatchQueue.main.async {
-            NotificationCenter.default.removeObserver(self.inner)
+        let token = tokenBox.withLock {
+            let old = $0;
+            $0 = nil;
+            return old;
+        };
+        
+        if let token {
+            center.removeObserver(token.token);
         }
     }
 }
@@ -97,24 +108,33 @@ public final actor WidgetDataManager : Sendable {
         
         let vcx = using.viewContext;
         self.cancel = await NotificationToken.createAsync(forName: .NSManagedObjectContextDidSave, object: vcx) { [weak self, log] note in
+            log?.debug("Obtained notification, has self? \(self != nil)")
             Self.handleSave(log: log, note: note, inner: self)
         }
+        
+        log?.info("Widget data manager is configured, listening for notifications.");
     }
     
     private let log: Logger?;
     private let cx: NSManagedObjectContext;
     private let calendar: Calendar;
-    private let onUpdate: (@Sendable (Int) async -> Void)?;
+    private var onUpdate: (@Sendable (Int) async -> Void)?;
     private var cancel: NotificationToken?;
-    private var lastCount: Int? = nil;
     
     private struct UpdateError : Error { }
     
-    private func determineIfApplicationsNeedUpdate(forDate: Date, update: Set<NSManagedObjectID>, lastCount: Int) async throws -> Int? {
-        let count: Int? = try await cx.perform { [cx, calendar, log, update] in
+    public func withUpdateAction(action: @Sendable @escaping (Int) async -> Void) {
+        self.onUpdate = action;
+    }
+    public func withUpdateAction() {
+        self.onUpdate = nil;
+    }
+    
+    private func determineIfApplicationsNeedUpdate(forDate: Date, update: Set<NSManagedObjectID>) async throws -> Bool {
+        return try await cx.perform { [cx, calendar, log, update] in
             guard let datePred = makeAppliedOnPredicate(forDate: forDate, calendar: calendar) else {
                 log?.error("Unable to get date predicate for update.");
-                return nil;
+                return true;
             }
             
             let req = JobApplication.fetchRequest();
@@ -123,19 +143,8 @@ public final actor WidgetDataManager : Sendable {
                 NSPredicate(format: "SELF IN %@", update as NSSet)
             ])
             
-            return try cx.count(for: req);
+            return try cx.count(for: req) != 0;
         };
-        
-        guard let count = count else {
-            log?.error("Unable to determine applications count for today.");
-            throw UpdateError();
-        }
-        
-        guard lastCount != count else {
-            return nil; //Nothing to update
-        }
-        
-        return count;
     }
     
     // TODO: Write unit tests that determine if the system is working properly. 
@@ -156,24 +165,16 @@ public final actor WidgetDataManager : Sendable {
          */
         
         let willUpdate: Bool;
-        var newCount: Int? = nil; // Will be set if the counts is already computed
         if hadDeleted {
             willUpdate = true;
         }
         else if !update.isEmpty {
-            if let lastCount = lastCount {
-                do {
-                    let newCount = try await determineIfApplicationsNeedUpdate(forDate: date, update: update, lastCount: lastCount);
-                    willUpdate = newCount != nil;
-                    self.lastCount = newCount;
-                }
-                catch let e {
-                    log?.error("Unable to fetch application counts due to error \(e.localizedDescription)");
-                    return;
-                }
+            do {
+                willUpdate = try await determineIfApplicationsNeedUpdate(forDate: date, update: update);
             }
-            else {
-                willUpdate = true;
+            catch let e {
+                log?.error("Unable to fetch application counts due to error \(e.localizedDescription)");
+                return;
             }
         }
         else {
@@ -182,14 +183,12 @@ public final actor WidgetDataManager : Sendable {
         
         let resultingCount: Int?;
         do {
-            if let newCount = newCount {
-                try updateAppCountsWidget(count: newCount, forDate: date);
-                resultingCount = newCount;
-            }
-            else if willUpdate {
+            if willUpdate {
+                log?.info("Notification determined that an update is needed.");
                 resultingCount = try await updateAppCountsWidget(cx: cx, forDate: date, calendar: calendar).count;
             }
             else {
+                log?.info("Notification determined that no update is needed.");
                 resultingCount = nil;
             }
         }
@@ -198,9 +197,13 @@ public final actor WidgetDataManager : Sendable {
             resultingCount = nil;
         }
         
-        if let resultingCount = resultingCount, let postAction = self.onUpdate {
-            await postAction(resultingCount)
+        if let resultingCount = resultingCount {
+            if let postAction = self.onUpdate {
+                await postAction(resultingCount)
+            }
         }
+        
+        WidgetCenter.shared.reloadAllTimelines();
     }
     
     private static nonisolated func handleSave(log: Logger?, note: Notification, inner: WidgetDataManager?) {
@@ -233,5 +236,17 @@ public final actor WidgetDataManager : Sendable {
         }
     }
     
+    @discardableResult
+    public func prepare(forDate: Date) async throws -> Int {
+        let result = try await updateAppCountsWidget(cx: cx, forDate: forDate, calendar: calendar).count;
+        
+        if let postAction = self.onUpdate {
+            await postAction(result)
+        }
+        
+        WidgetCenter.shared.reloadAllTimelines();
+        
+        return result;
+    }
     
 }

@@ -86,7 +86,7 @@ struct StatusReviewerTests : Sendable {
             
             for app in fetched {
                 guard let snapshot = targets[app.objectID] else {
-                    #expect(Bool(false), "Unable to get the snapshot for \(app.position)");
+                    Issue.record("Unable to get the snapshot for \(app.position)");
                     continue;
                 }
                 
@@ -157,7 +157,9 @@ struct StatusReviewerTests : Sendable {
                     let updatedDate = cal.startOfDay(for: targetObject.lastStatusUpdated ?? .distantPast);
                     
                     #expect(updatedDate == today)
-                    #expect(targetObject.state == snapshot.updateStateTo)
+                    DispatchQueue.main.sync {
+                        #expect(targetObject.state == snapshot.updateStateTo)
+                    }
                 }
             }
         }.value
@@ -212,10 +214,5 @@ struct StatusReviewerTests : Sendable {
         await MainActor.run {
             #expect(demangled == targets);
         }
-    }
-    
-    @Test("MoveToSection")
-    func moveToSection() async throws {
-        
     }
 }
