@@ -114,6 +114,56 @@ public struct VarianceContainerFiller : ContainerDataFiller {
     }
 }
 
+public struct MarketingContainerFiller : ContainerDataFiller {
+    public func fill(context: NSManagedObjectContext) throws {
+        var rand = SystemRandomNumberGenerator();
+        let calendar = Calendar.current;
+        
+        let samples: [(String, String, JobApplicationState)] = [
+            ("Senior Product Designer", "Stellar Cloud Systems", .inInterview),
+            ("Junior Software Engineer", "GreenLoop Energy", .applied),
+            ("Marketing Coordinator", "Peak Performance Athletics", .rejected),
+            ("Data Analyst", "Silverline Logistics", .underReview),
+            ("UX Researcher", "Blue Marble Media", .ghosted),
+            ("Operations Manager", "Horizon FinTech", .accepted),
+            ("Account Executive", "Pulse Health Tech", .underReview),
+            ("Creative Director", "Neon Agency", .inInterview),
+            ("Full Stack Developer", "SwiftStream Apps", .applied),
+            ("Customer Success Lead", "Anchor Maritime", .ghosted),
+            ("Human Resources Generalist", "EverGrow Organics", .rejected)
+        ];
+        
+        for (name, company, status) in samples {
+            guard let date = calendar.date(
+                byAdding: .day,
+                value: Int.random(in: (-64)...0, using: &rand),
+                to: .now,
+            ) else {
+                continue;
+            }
+            
+            let app = JobApplication(context: context);
+            app.position = name;
+            app.company = company;
+            app.lastStatusUpdated = date;
+            app.appliedOn = date;
+            app.state = status;
+            app.location = "";
+            app.locationKind = .remote;
+        }
+        
+        let fullDetails = JobApplication(context: context);
+        fullDetails.position = "Technical Writer"
+        fullDetails.company = "Orbit Satellite Co.";
+        fullDetails.state = .underReview;
+        fullDetails.lastStatusUpdated = .now;
+        fullDetails.appliedOn = .now;
+        fullDetails.locationKind = .onSite;
+        fullDetails.location = "New York, NY";
+        fullDetails.website = URL(string: "https://orbitsatellite.com")!;
+    }
+}
+
 public struct DebugSampleData: PreviewModifier {
     public static func makeSharedContext() async throws -> DataStack {
         try await DataStack.debugContainer()
