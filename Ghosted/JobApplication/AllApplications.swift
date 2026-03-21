@@ -12,7 +12,7 @@ import ExDisj
 /// A view that provides an overview of all job applications, with the ability to filter, search, and provide statistics.
 public struct AllApplications : View {
     
-    @QuerySelection<JobApplication>(sortDescriptors: [SortDescriptor(\JobApplication.internalAppliedOn)])
+    @QuerySelection<JobApplication>(sortDescriptors: [SortDescriptor(\JobApplication.internalAppliedOn, order: .reverse)])
     private var applications;
     
     @State private var manifests: JobApplicationsManifests = .init();
